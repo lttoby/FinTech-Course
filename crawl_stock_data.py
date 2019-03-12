@@ -48,43 +48,42 @@ def get_Html(url):
     return r
 
 
-def get_minute_data(stock_list, debug = True):
+def get_minute_data(stock_code, debug = True):
 
     time_start = time.time()
     df_data = pd.DataFrame()
-    for stock_code in stock_list:
+    
+    print(stock_code)
 
-        print(stock_code)
+    if debug:
+        time_start_i = time.time()
 
-        if debug:
-            time_start_i = time.time()
+    url = ('http://www.szse.cn/api/market/ssjjhq/getTimeData?random=0.21065077819046873&marketId=1&code={}'.format(stock_code))
 
-        url = (
-            'http://www.szse.cn/api/market/ssjjhq/getTimeData?random=0.21065077819046873&marketId=1&code={}'.format(
-                stock_code))
+    try:
+        result = get_Html(url)
 
-        try:
-            result = get_Html(url)
-
-            json_data = json.loads(result)
-            date = json_data['datetime'][0:10]
-            to_df = list()
-            for i in range(0,len(json_data['data']['picupdata'])):
-                data_list = json_data['data']['picupdata'][i]
-                to_df.append(data_list)
-        except Exception:
-            print(stock_code + "out of range")
+        json_data = json.loads(result)
+        date = json_data['datetime'][0:10]
+        to_df = list()
+        for i in range(0,len(json_data['data']['picupdata'])):
+            data_list = json_data['data']['picupdata'][i]
+            to_df.append(data_list)
+    except Exception:
+        print(stock_code + "out of range")
             
-        df_tmp = pd.DataFrame(to_df, columns=['time', 'price', 'average', 'change', 'chg_pct', 'turnover_shares', 'turnover_value'])
-        df_tmp["stock_code"] = stock_code
-        df_tmp["trade_date"] = date
-        df_data = df_data.append(df_tmp)
+    df_tmp = pd.DataFrame(to_df, columns=['time', 'price', 'average', 'change', 'chg_pct', 'turnover_shares', 'turnover_value'])
+    df_tmp["stock_code"] = stock_code
+    df_tmp["trade_date"] = date
+    df_data = df_data.append(df_tmp)
 
-        if debug:
-            print("getting data time spent:%s" % (time.time() - time_start_i))
+    if debug:
+        print("getting data time spent:%s" % (time.time() - time_start_i))
 
     if debug:
         print("total time spent:%s" % (time.time() - time_start))
     return df_data[['trade_date', 'stock_code', 'time', 'price', 'average', 'change', 'chg_pct', 'turnover_shares', 'turnover_value']]
+
+
 
 
